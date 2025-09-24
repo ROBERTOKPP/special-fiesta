@@ -3,6 +3,8 @@ const amount = document.getElementById("amount");
 const expense = document.getElementById("expense");
 const category = document.getElementById("category");
 const expenseList = document.querySelector("ul");
+const expenseQuantity = document.querySelector("aside header p span");
+const expenseTotal = document.querySelector("aside header h2");
 
 // CAPTURANDO O EVENTO DE INPUT PARA FORMATAR O VALOR
 amount.oninput = function () {
@@ -69,11 +71,13 @@ function expenseAdd(newExpense) {
     const removeIcon = document.createElement("img");
     removeIcon.classList.add("remove-icon");
     removeIcon.setAttribute("src", "img/remove.svg");
-    removeIcon.setAttribute("alt", "remover")
-
+    removeIcon.setAttribute("alt", "remover");
 
     expenseItem.append(expenseIcon, expenseInfo, expenseAmount, removeIcon);
     expenseList.append(expenseItem);
+
+    updateTotals();
+    formClear();
   } catch (error) {
     alert("Não foi possivel atualzar a lista de despesas");
     console.log(error);
@@ -82,10 +86,60 @@ function expenseAdd(newExpense) {
 
 //atualizar os totais
 
-function updateTotals(){
-try {
-  
-} catch (error) {
-  
+function updateTotals() {
+  try {
+    //recupera todos os itens da lista
+    const items = expenseList.children;
+
+    let total = 0;
+
+    for (let item = 0; item < items.length; item++) {
+      const itemAmount = items[item].querySelector(".expense-amount");
+
+      let value = itemAmount.textContent
+        .replace(/[^\d,]/g, "")
+        .replace(",", ".");
+
+      value = parseFloat(value);
+
+      if (isNaN(value)) {
+        return alert("Nao e numero");
+      }
+
+      total += Number(value);
+    }
+
+    const symbolBRL = document.createElement("small");
+    symbolBRL.textContent = "R$";
+
+    total = formatCurrencyBRL(total).toUpperCase().replace("R$", "");
+    expenseTotal.innerHTML = "";
+    expenseTotal.append(symbolBRL, total);
+
+    // atualizar a quantidade de intes na lista.
+    expenseQuantity.textContent = `${items.length} ${
+      items.length > 1 ? "despedas" : "despesa"
+    }`;
+  } catch (error) {
+    console.log(error);
+    alert("Nao foi possivel atualizar os totais.");
+  }
 }
+
+//evento que captura os itens da lista
+expenseList.addEventListener("click", function (event) {
+  if (event.target.classList.contains("remove-icon")) {
+    const item = event.target.closest(".expense")
+    item.remove()
+  }
+  updateTotals()
+});
+
+
+function formClear(){
+  expense.value = "";
+  category.value = "";
+  amount.value = "";
+
+  expense.focus()
 }
